@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NgajiTracker - Portal Privat Terpadu</title>
+    <!-- Tailwind CSS untuk Styling Modern -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans untuk UI modern -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome untuk Set Ikon Premium -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js CDN untuk Spider Chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2pdf.js CDN untuk Pembuatan Dokumen PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .arabic-font {
+            font-family: 'Amiri', serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col justify-between">
+
+    <!-- CUSTOM TOAST NOTIFICATION SYSTEM (Replacement for alert) -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+    <!-- GLOBAL APPBART -->
+    <header class="bg-emerald-900 text-white shadow-md sticky top-0 z-40 border-b border-emerald-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-700 p-2 rounded-xl shadow-inner flex items-center justify-center">
+                    <span class="arabic-font text-xl font-bold text-emerald-100">🕋</span>
+                </div>
+                <div>
+                    <h1 class="text-base font-extrabold tracking-tight flex items-center gap-2">
+                        NgajiTracker <span class="bg-emerald-800 text-[9px] text-emerald-300 px-1.5 py-0.5 rounded font-mono font-normal">PORTAL MULTI-USER</span>
+                    </h1>
+                    <p class="text-[10px] text-emerald-200">Manajemen & Laporan Privat Mengaji Real-Time</p>
+                </div>
+            </div>
+            
+            <div id="headerUserIndicator" class="flex items-center gap-2">
+                <!-- Status User diisi Dinamis oleh JS -->
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: MAIN GATEWAYS / HUB LOGIN -->
+    <!-- ========================================================================= -->
+    <main id="view-hub" class="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div class="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-slate-100">
+            
+            <!-- PORTAL KHUSUS GURU -->
+            <div class="flex flex-col justify-between p-6 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50/50 border border-emerald-100 shadow-inner">
+                <div>
+                    <div class="h-12 w-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xl shadow mb-4">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-emerald-900">Portal Guru Privat</h2>
+                    <p class="text-xs text-emerald-700/80 mt-1 mb-6 leading-relaxed">
+                        Akses khusus untuk guru privat. Kelola database murid, update kurikulum, upload foto proses belajar (KBM), dan kirim feedback real-time.
+                    </p>
+                    
+                    <div class="space-y-3">
+                        <label class="block text-xs font-semibold text-slate-600">Password Akses Guru</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                <i class="fa-solid fa-lock text-xs"></i>
+                            </span>
+                            <input id="teacherPasswordInput" type="password" placeholder="Ketik sandi guru..." class="w-full pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-medium">
+                        </div>
+                        <p class="text-[10px] text-slate-400 italic font-mono">*Bocoran demo password: <strong class="text-emerald-700">guru</strong></p>
+                    </div>
+                </div>
+
+                <button onclick="handleTeacherLogin()" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold py-3 px-4 rounded-xl shadow transition-all flex items-center justify-center gap-2">
+                    Masuk Portal Guru <i class="fa-solid fa-right-to-bracket"></i>
+                </button>
+            </div>
+
+            <!-- PORTAL ORANG TUA / SISWA -->
+            <div class="flex flex-col justify-between p-6 rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50/50 border border-sky-100 shadow-inner">
+                <div>
+                    <div class="h-12 w-12 rounded-xl bg-sky-600 text-white flex items-center justify-center text-xl shadow mb-4">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-sky-900">Portal Orang Tua Murid</h2>
+                    <p class="text-xs text-sky-700/80 mt-1 mb-6 leading-relaxed">
+                        Lihat langsung laporan harian buah hati lu tanpa login sandi. Cukup masukkan kode link unik laporan anak lu yang dibagikan oleh guru.
+                    </p>
+                    
+                    <div class="space-y-3">
+                        <label class="block text-xs font-semibold text-slate-600">Kode Laporan Unik Anak</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                <i class="fa-solid fa-link text-xs"></i>
+                            </span>
+                            <input id="parentCodeInput" type="text" placeholder="Contoh: ahmad-fathoni-77" class="w-full pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-bold tracking-wide">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex flex-col gap-2">
+                    <button onclick="handleParentAccess()" class="w-full bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white text-xs font-bold py-3 px-4 rounded-xl shadow transition-all flex items-center justify-center gap-2">
+                        Buka Laporan Anak <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                    <!-- Simulated Direct Link Options for Demo convenience -->
+                    <div class="border-t border-sky-100 pt-3 mt-1 text-center">
+                        <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1.5">Akses Demo Cepat:</span>
+                        <div class="flex flex-wrap gap-1.5 justify-center">
+                            <button onclick="demoAccessParent('ahmad-fathoni-77')" class="text-[10px] bg-sky-100 hover:bg-sky-200 text-sky-800 px-2 py-1 rounded font-bold">Ahmad</button>
+                            <button onclick="demoAccessParent('khansa-salsa-12')" class="text-[10px] bg-sky-100 hover:bg-sky-200 text-sky-800 px-2 py-1 rounded font-bold">Khansa</button>
+                            <button onclick="demoAccessParent('m-yusuf-45')" class="text-[10px] bg-sky-100 hover:bg-sky-200 text-sky-800 px-2 py-1 rounded font-bold">Yusuf</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: TEACHER SUITE DASHBOARD (Password Protected) -->
+    <!-- ========================================================================= -->
+    <div id="view-teacher" class="hidden flex-1 flex flex-col">
+        <!-- Sub-navigation tabs inside teacher panel -->
+        <nav class="bg-white border-b border-slate-200 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-4 overflow-x-auto py-2">
+                <button onclick="switchTeacherTab('tab-database')" id="btn-tab-database" class="teacher-tab-btn px-4 py-2.5 text-xs font-bold border-b-2 border-emerald-600 text-emerald-600 rounded-t-lg transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-user-group text-emerald-500"></i> Database & Profil Murid
+                </button>
+                <button onclick="switchTeacherTab('tab-curriculum')" id="btn-tab-curriculum" class="teacher-tab-btn px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 rounded-t-lg transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-slate-400"></i> Kurikulum 24 Sesi
+                </button>
+                <button onclick="switchTeacherTab('tab-journal')" id="btn-tab-journal" class="teacher-tab-btn px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 rounded-t-lg transition-all flex items-center gap-2 relative">
+                    <i class="fa-solid fa-book-journal-whills text-slate-400"></i> Jurnal & Sesi Mengajar
+                    <span class="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                </button>
+            </div>
+        </nav>
+
+        <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8">
+            
+            <!-- SUB TAB 1: DATABASE & PROFILE MANAGEMENT -->
+            <section id="tab-database" class="teacher-tab-content block animate-fadeIn">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Daftar Siswa (Kiri) -->
+                    <div class="lg:col-span-4 flex flex-col gap-4">
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Daftar Murid Kelolaan</h3>
+                            <div id="teacherStudentList" class="flex flex-col gap-2">
+                                <!-- Populated dynamically by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detil Siswa Aktif + KBM Photo Upload (Kanan) -->
+                    <div id="teacherStudentDetail" class="lg:col-span-8 flex flex-col gap-6">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- SUB TAB 2: INTERACTIVE CURRICULUM -->
+            <section id="tab-curriculum" class="teacher-tab-content hidden animate-fadeIn">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-list-check text-emerald-600"></i> Kurikulum 24 Sesi: Zero to Al-Qur'an
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Panduan bertahap mengajar mengaji terstruktur.</p>
+                        </div>
+                        <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                            <label class="text-[11px] font-bold text-slate-500">Pilih Siswa:</label>
+                            <select id="curriculumStudentSelect" onchange="renderCurriculumTab()" class="bg-white text-xs font-bold text-slate-700 border border-slate-200 rounded-lg p-1 outline-none">
+                                <!-- Populated via JS -->
+                            </select>
+                        </div>
+                    </div>
+                    <div id="curriculumOverviewBar" class="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-100/50 flex justify-between items-center flex-wrap gap-3">
+                        <!-- Generated via JS -->
+                    </div>
+                </div>
+                <div id="curriculumCardsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <!-- Cards Populated via JS -->
+                </div>
+            </section>
+
+            <!-- SUB TAB 3: DAILY JOURNAL & SESSIONS (With AI & Photos Integration) -->
+            <section id="tab-journal" class="teacher-tab-content hidden animate-fadeIn">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- Form Input Log Sesi -->
+                    <form id="journalForm" onsubmit="handleJournalSubmit(event)" class="lg:col-span-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-4">
+                        <div class="border-b border-slate-100 pb-3">
+                            <h2 class="text-base font-bold text-slate-800">Catat Hasil Sesi Mengajar</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Tambahkan absensi, materi, dan catatan yang otomatis terkirim ke portal orang tua terkait.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Pilih Siswa</label>
+                                <select id="formStudentSelect" onchange="autoFillJournalForm()" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white font-bold transition-all">
+                                    <!-- Populated via JS -->
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Pertemuan Sesi Ke-</label>
+                                <select id="formMeetingNum" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all font-semibold">
+                                    <!-- 1-24 options -->
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Status Kehadiran</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <label class="border border-slate-200 rounded-xl py-1.5 px-2 text-center cursor-pointer hover:bg-slate-50 transition-all flex items-center justify-center gap-1 text-xs font-bold">
+                                        <input type="radio" name="attendance" value="Hadir" checked class="accent-emerald-600"> Hadir
+                                    </label>
+                                    <label class="border border-slate-200 rounded-xl py-1.5 px-2 text-center cursor-pointer hover:bg-slate-50 transition-all flex items-center justify-center gap-1 text-xs font-bold">
+                                        <input type="radio" name="attendance" value="Izin" class="accent-amber-600"> Izin
+                                    </label>
+                                    <label class="border border-slate-200 rounded-xl py-1.5 px-2 text-center cursor-pointer hover:bg-slate-50 transition-all flex items-center justify-center gap-1 text-xs font-bold">
+                                        <input type="radio" name="attendance" value="Sakit" class="accent-rose-600"> Sakit
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Buku / Jilid Pembelajaran</label>
+                                <input id="formMateri" type="text" placeholder="Contoh: Iqra Jilid 4, Al-Baqarah" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Halaman / Ayat Terbaru</label>
+                                <input id="formHalaman" type="number" placeholder="Contoh: 15" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white font-bold transition-all font-bold">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Tingkat Kelancaran</label>
+                                <select id="formKelancaran" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all font-semibold font-medium">
+                                    <option value="Sangat Lancar (A)">Sangat Lancar (A)</option>
+                                    <option value="Lancar (B)" selected>Lancar (B)</option>
+                                    <option value="Cukup Lancar (C)">Cukup Lancar (C)</option>
+                                    <option value="Perlu Bimbingan Ekstra (D)">Perlu Bimbingan Ekstra (D)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Sesi</label>
+                                <input id="formTanggal" type="date" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all">
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-xs font-semibold text-slate-600">Catatan Tajwid & Feedback Sesi</label>
+                                    <!-- TOMBOL PEMANGGIL GEMINI AI FEEDBACK -->
+                                    <button type="button" onclick="generateAiFeedbackFromForm()" class="text-[10px] bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold px-2 py-1 rounded flex items-center gap-1 transition-all">
+                                        <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ poles dengan AI
+                                    </button>
+                                </div>
+                                <textarea id="formCatatan" rows="3" required placeholder="Catat detail evaluasi bacaan murid di sini..." class="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all resize-none"></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 rounded-xl shadow transition-all flex items-center justify-center gap-2 mt-2">
+                            <i class="fa-solid fa-floppy-disk"></i> Simpan Laporan Harian Sesi
+                        </button>
+                    </form>
+
+                    <!-- Feedback Quick Presets (Sidebar Kanan) -->
+                    <div class="lg:col-span-4 flex flex-col gap-4">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt-lightning text-amber-500"></i> Template Feedback Sesi Kilat
+                            </h3>
+                            <div class="flex flex-col gap-2">
+                                <button onclick="applyFeedbackTemplate('fokus')" type="button" class="text-left text-[11px] bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 p-2 rounded-lg transition-all font-medium">
+                                    🎯 "Sangat fokus hari ini, pelafalan huruf makhraj lurus dan bersih."
+                                </button>
+                                <button onclick="applyFeedbackTemplate('tajwid')" type="button" class="text-left text-[11px] bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 p-2 rounded-lg transition-all font-medium">
+                                    📖 "Mohon diperhatikan ketukan panjang pendek Mad Thabi'i agar konsisten."
+                                </button>
+                                <button onclick="applyFeedbackTemplate('ulang')" type="button" class="text-left text-[11px] bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 p-2 rounded-lg transition-all font-medium">
+                                    🏠 "Lancar membaca, harap materi hari ini diulas kembali di rumah bersama ayah/bunda."
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Panel Generator Latihan Mandiri (AI) -->
+                        <div class="bg-gradient-to-br from-emerald-950 to-emerald-900 text-emerald-100 p-5 rounded-2xl shadow border border-emerald-950 flex flex-col gap-3">
+                            <span class="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> AI Planner Sesi Mandiri
+                            </span>
+                            <p class="text-[10px] text-emerald-200 leading-relaxed">
+                                Buat 3 panduan latihan khusus bagi orang tua berdasarkan input form saat ini.
+                            </p>
+                            <button onclick="generateAiTipsFromForm()" type="button" class="bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs py-2 px-3 rounded-xl transition-all shadow flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-graduation-cap"></i> ✨ Buat PR Mandiri
+                            </button>
+                            <!-- Hasil PR AI -->
+                            <div id="aiPRBox" class="hidden bg-emerald-900/60 p-3 rounded-xl border border-emerald-800 text-[11px] text-emerald-100 leading-relaxed">
+                                <div class="flex justify-between items-center font-bold text-emerald-300 border-b border-emerald-800 pb-1 mb-1">
+                                    <span>Rencana Latihan (AI)</span>
+                                    <button onclick="document.getElementById('aiPRBox').classList.add('hidden')" type="button" class="text-emerald-400 hover:text-emerald-200"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                                <div id="aiPRContent"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: PARENT ACCESS PORTAL (Individual Unique Link View) -->
+    <!-- ========================================================================= -->
+    <main id="view-parent" class="hidden flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+        <div id="parentReportContainer" class="flex flex-col gap-6">
+            <!-- Populated dynamically via JS -->
+        </div>
+    </main>
+
+    <!-- RAPORT PDF OFFLINE PRINT TEMPLATE (HIDDEN FROM MAIN UI SCREEN) -->
+    <div class="hidden">
+        <div id="pdfPrintTemplate" class="p-8 bg-white max-w-[800px] text-slate-800 flex flex-col gap-6 border border-slate-200 rounded" style="width: 790px;">
+            <!-- Kop Raport -->
+            <div class="text-center border-b-4 border-emerald-850 pb-4 flex items-center justify-between">
+                <div class="text-left">
+                    <h1 class="text-2xl font-extrabold text-emerald-900 tracking-tight">RAPORT PERKEMBANGAN MENGAJI</h1>
+                    <p class="text-xs text-emerald-700 font-bold uppercase tracking-wider">NgajiTracker Privat Qur'an Suite</p>
+                </div>
+                <div class="bg-emerald-900 text-white p-2 text-xl font-bold rounded-lg arabic-font">🕋</div>
+            </div>
+
+            <!-- Profile Info & Foto Anak (Flex Layout) -->
+            <div class="flex justify-between items-start gap-4">
+                <!-- Profil Anak (Kiri Atas) -->
+                <div class="flex-1 grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold block uppercase">Nama Lengkap</span>
+                        <p id="pdfSiswaNama" class="font-extrabold text-sm text-slate-800">-</p>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold block uppercase">Usia Siswa</span>
+                        <p id="pdfSiswaUsia" class="font-bold text-slate-700">-</p>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold block uppercase">Materi Belajar</span>
+                        <p id="pdfSiswaMateri" class="font-bold text-slate-700">-</p>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold block uppercase">Halaman Saat Ini</span>
+                        <p id="pdfSiswaHalaman" class="font-bold text-slate-700">-</p>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold block uppercase">Nama Orang Tua</span>
+                        <p id="pdfSiswaWali" class="font-bold text-slate-700">-</p>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold block uppercase">Pertemuan Selesai</span>
+                        <p id="pdfSiswaSesi" class="font-bold text-slate-700">-</p>
+                    </div>
+                </div>
+
+                <!-- Foto Anak (Kanan Atas) -->
+                <div class="w-32 h-40 bg-slate-100 border-2 border-emerald-900 rounded-lg overflow-hidden flex items-center justify-center p-1 shadow">
+                    <img id="pdfSiswaFoto" src="https://placehold.co/150x180/065f46/ffffff?text=FOTO" alt="Pas Foto Anak" class="w-full h-full object-cover rounded-md">
+                </div>
+            </div>
+
+            <!-- Bagian Tengah: Spider Chart & Metrik Evaluasi -->
+            <div class="border-t border-slate-200 pt-4">
+                <h3 class="text-sm font-extrabold text-emerald-900 uppercase tracking-wider mb-3">Grafik Penilaian Metrik Mengaji</h3>
+                <div class="grid grid-cols-2 items-center gap-4">
+                    <!-- Chart image captured from active canvas -->
+                    <div class="flex justify-center items-center bg-slate-50 p-2 rounded-xl border border-slate-100">
+                        <img id="pdfRadarImage" alt="Grafik Radar Penilaian" class="max-h-60 max-w-full">
+                    </div>
+                    
+                    <!-- Keterangan Angka Nilai -->
+                    <div class="flex flex-col gap-2.5 text-xs">
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="font-bold text-slate-600">1. Makhraj Huruf (Pelafalan)</span>
+                            <span id="pdfValMakhraj" class="font-extrabold text-emerald-750 font-mono">0 / 100</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="font-bold text-slate-600">2. Tajwid (Hukum Panjang/Dengung)</span>
+                            <span id="pdfValTajwid" class="font-extrabold text-emerald-750 font-mono">0 / 100</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="font-bold text-slate-600">3. Tahsin (Keindahan Nada/Tempo)</span>
+                            <span id="pdfValTahsin" class="font-extrabold text-emerald-750 font-mono">0 / 100</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="font-bold text-slate-600">4. Kelancaran Membaca</span>
+                            <span id="pdfValKelancaran" class="font-extrabold text-emerald-750 font-mono">0 / 100</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="font-bold text-slate-600">5. Adab & Fokus Belajar</span>
+                            <span id="pdfValAdab" class="font-extrabold text-emerald-750 font-mono">0 / 100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bagian Bawah: Catatan Penting & Potensi Perkembangan -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200 pt-4 text-xs">
+                <div class="bg-amber-50 p-3 rounded-lg border border-amber-200/55">
+                    <h4 class="font-bold text-amber-900 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                        <i class="fa-solid fa-comment-dots"></i> Catatan Khusus untuk Anak
+                    </h4>
+                    <p id="pdfSiswaCatatan" class="leading-relaxed text-amber-800">Tidak ada catatan.</p>
+                </div>
+                <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+                    <h4 class="font-bold text-emerald-900 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-nodes"></i> Potensi Anak untuk Berkembang
+                    </h4>
+                    <p id="pdfSiswaPotensi" class="leading-relaxed text-emerald-800">Tidak ada evaluasi potensi.</p>
+                </div>
+            </div>
+
+            <!-- Tanda Tangan Guru -->
+            <div class="flex justify-between items-end mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-500">
+                <div>
+                    <p>Raport digenerasi secara resmi oleh NgajiTracker Suite.</p>
+                    <p class="font-mono mt-0.5" id="pdfExportTimestamp">Waktu unduh: -</p>
+                </div>
+                <div class="text-center w-40">
+                    <p class="mb-12">Ustadz Pendamping,</p>
+                    <div class="border-b-2 border-slate-400 w-full mx-auto"></div>
+                    <p class="font-bold mt-1 text-slate-800">Privat Mengaji Qur'an</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-4 px-6 text-center text-[10px] text-slate-400">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+            <p>© 2026 NgajiTracker Suite. Mengembangkan Manajemen Pengajaran Quran Modern & Berstruktur.</p>
+            <div id="logoutBtnContainer">
+                <!-- logout button injected -->
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // =========================================================================
+        // 1. DATABASE LOKAL & STATE MANAGEMENT (SANDBOX DATA WITH RADAR & RAPORT)
+        // =========================================================================
+        
+        // Data Sandi Administrator Guru
+        const TEACHER_PASSWORD_VAL = "guru";
+
+        // Data Kurikulum Mandiri 24 Sesi Pembelajaran (Zero to Al-Qur'an)
+        const curriculumData = [
+            { id: 1, title: "Pengenalan Huruf Hijaiyah Tunggal", range: "Sesi 1-2", detail: "Fokus melafalkan huruf Alif sampai Ya dengan makhraj yang lurus dan bersih tanpa harakat.", method: "Metode Talqin (mendengar & meniru langsung guru). Latihan makhraj tenggorokan." },
+            { id: 2, title: "Harakat Dasar (Fathah, Kasrah, Dhammah)", range: "Sesi 3-4", detail: "Pengenalan bunyi pendek vokal a, i, u pada huruf hijaiyah. Durasi bacaan wajib 1 ketukan saja.", method: "Gunakan ketukan meja lambat untuk mengunci durasi 1 harakat murni." },
+            { id: 3, title: "Membaca Dua Huruf Berharakat", range: "Sesi 5-6", detail: "Merangkai dua huruf berharakat dasar berbeda. Melatih refleks membaca cepat.", method: "Latihan membaca berpasangan dengan tempo konstan." },
+            { id: 4, title: "Harakat Tanwin (An, In, Un)", range: "Sesi 7-8", detail: "Pengenalan bunyi akhir 'n' di akhir huruf. Membedakan visualisasi tanwin dengan harakat tunggal.", method: "Sandingkan visual huruf fathah biasa vs fathatain agar siswa mengenali letak bunyinya." },
+            { id: 5, title: "Hukum Mad Asli / Thabi'i", range: "Sesi 9-10", detail: "Pondasi panjang-pendek bacaan (2 ketukan) saat huruf bertemu Alif, Ya sukun, atau Wawu sukun.", method: "Simulasi ayunan suara. Guru menyuruh murid mengayunkan tangan ke atas-bawah sebanyak 2 ketukan." },
+            { id: 6, title: "Pengenalan Huruf Bersambung Dasar", range: "Sesi 11-12", detail: "Perubahan bentuk visual huruf hijaiyah saat berada di posisi awal, tengah, dan akhir rangkaian.", method: "Gunakan kartu visual bentuk-bentuk huruf untuk menebak perubahan huruf aslinya." },
+            { id: 7, title: "Hukum Sukun (Mati) & Qalqalah", range: "Sesi 13-14", detail: "Cara mematikan bunyi huruf. Pengenalan 5 huruf memantul (Qof, Tha, Ba, Jim, Dal) saat sukun.", method: "Latihan memantulkan suara tipis (Qalqalah Kubra & Sughra) dengan membandingkan kata biasa." },
+            { id: 8, title: "Hukum Tasydid (Double Konsonan)", range: "Sesi 15-16", detail: "Cara menekan dan menahan bunyi huruf yang bertasydid sebelum dilafalkan lanjut.", method: "Tekankan penekanan suara 1,5 ketukan sebelum masuk harakat berikutnya." },
+            { id: 9, title: "Al-Qamariyah & Al-Syamsiyah", range: "Sesi 17-18", detail: "Pengenalan huruf Alif Lam yang dibaca jelas (Qomariyah) dan Alif Lam yang melebur masuk (Syamsiyah).", method: "Berikan penekanan visual warna stabilo pada Alif Lam di mushaf latihan." },
+            { id: 10, title: "Tajwid Dasar: Nun Sukun & Tanwin", range: "Sesi 19-20", detail: "Hukum dasar penting: Izhar (jelas), Idgham (masuk mendengung), Ikhfa (samar), dan Iqlab (menjadi m).", method: "Gunakan pengelompokan bagan warna sederhana untuk merangkum daftar huruf hijaiyah." },
+            { id: 11, title: "Tajwid Dasar: Mim Sukun & Mad Fari'i", range: "Sesi 21-22", detail: "Membaca dengung ikhfa syafawi, idgham mimi, serta aturan panjang di atas 2 ketukan (Mad Wajib/Jaiz).", method: "Praktek membaca langsung potongan ayat-ayat pendek dalam Juz Amma." },
+            { id: 12, title: "Praktek Membaca Lancar Juz Amma", range: "Sesi 23-24", detail: "Penerapan seluruh hukum bacaan dari pertemuan 1-22 pada surah-surah pendek (An-Nas s.d Ad-Dhuha).", method: "Simulasi menyimak (murid membaca, guru memberikan koreksi interupsi jika tajwid meleset)." }
+        ];
+
+        // Database Default 5 Siswa dengan Data Metrik & Raport Lengkap
+        let students = [
+            {
+                id: 1,
+                uniqueCode: "ahmad-fathoni-77",
+                name: "Ahmad Fathoni",
+                age: "11 Tahun",
+                parentName: "Bapak Hendra Fathoni",
+                parentContact: "0812-3456-7890",
+                joinDate: "12 Januari 2026",
+                currentBook: "Iqra Jilid 4",
+                currentPage: 15,
+                targetPage: 30,
+                completedMeetings: 12,
+                fluencyLevel: "Lancar (B)",
+                importantNotes: "Sangat fokus belajar, makhraj huruf Kho (خ) dan Qof (ق) sudah mantap. Fokus berikutnya melatih kestabilan panjang pendek Mad Thabi'i.",
+                avatar: "https://placehold.co/150x180/065f46/ffffff?text=AHMAD",
+                // Metrik Khusus Raport Spider Chart (0-100)
+                skills: { makhraj: 85, tajwid: 70, tahsin: 75, kelancaran: 80, adab: 90 },
+                catatanAnak: "Ahmad, terus pertahankan kefokusanmu saat menyimak. Pelafalan makhraj tebalmu sudah sangat baik. Mari kita lancarkan lagi ketukan panjang-pendeknya di rumah ya nak!",
+                potensiAnak: "Memiliki kepekaan tajwid yang sangat tinggi. Sangat potensial berkembang ke arah tahfidz (hafalan cepat) karena daya tangkap visualnya yang kuat.",
+                kbmPhotos: [
+                    { id: 101, url: "https://placehold.co/600x400/065f46/ffffff?text=Fokus+Sesi+Makhraj+Ahmad", caption: "Sesi Offline: Latihan mengunci makhraj tebal tipis." }
+                ],
+                sessionLogs: [
+                    { date: "2026-05-28", meetingNum: 12, material: "Iqra Jilid 4", page: 15, status: "Hadir", fluency: "Lancar (B)", notes: "Membaca huruf bersambung 3 suku kata. Bagus, makhraj murni." },
+                    { date: "2026-05-21", meetingNum: 11, material: "Iqra Jilid 4", page: 10, status: "Hadir", fluency: "Lancar (B)", notes: "Melatih panjang pendek Mad Thabi'i awal jilid 4." }
+                ]
+            },
+            {
+                id: 2,
+                uniqueCode: "khansa-salsa-12",
+                name: "Khansa Salsabila",
+                age: "7 Tahun",
+                parentName: "Ibu Anita Salsabila",
+                parentContact: "0813-8888-2234",
+                joinDate: "05 Februari 2026",
+                currentBook: "Iqra Jilid 1",
+                currentPage: 8,
+                targetPage: 20,
+                completedMeetings: 4,
+                fluencyLevel: "Cukup Lancar (C)",
+                importantNotes: "Anaknya agak pemalu di awal sesi. Butuh pendekatan menyenangkan tanpa paksaan. Suka visualisasi stiker warna hijaiyah.",
+                avatar: "https://placehold.co/150x180/0369a1/ffffff?text=KHANSA",
+                skills: { makhraj: 60, tajwid: 50, tahsin: 65, kelancaran: 55, adab: 85 },
+                catatanAnak: "Khansa hebat sekali sudah mulai berani membaca sendiri! Jangan malu ya sayang, ulangi tebak huruf berwarna seperti yang kita pelajari hari ini bersama bunda.",
+                potensiAnak: "Daya tangkap terhadap visual warna dan bentuk sangat tinggi. Potensial berkembang pesat jika media belajar menggunakan metode gamifikasi kreatif.",
+                kbmPhotos: [
+                    { id: 201, url: "https://placehold.co/600x400/0369a1/ffffff?text=Khansa+Tebak+Huruf+Hijaiyah", caption: "Sesi Online: Bermain tebak huruf berstiker warna." }
+                ],
+                sessionLogs: [
+                    { date: "2026-05-29", meetingNum: 4, material: "Iqra Jilid 1", page: 8, status: "Hadir", fluency: "Cukup Lancar (C)", notes: "Pengenalan huruf Da (د) dan Dza (ذ). Perlu diulang di rumah." }
+                ]
+            },
+            {
+                id: 3,
+                uniqueCode: "m-yusuf-45",
+                name: "Muhammad Yusuf",
+                age: "9 Tahun",
+                parentName: "Bapak Ridwan",
+                parentContact: "0856-7711-2299",
+                joinDate: "20 Januari 2026",
+                currentBook: "Juz Amma (Al-Kafirun)",
+                currentPage: 1,
+                targetPage: 15,
+                completedMeetings: 18,
+                fluencyLevel: "Sangat Lancar (A)",
+                importantNotes: "Daya ingat hafalan kuat. Irama makhraj natural. Sedang persiapan transisi masuk mushaf Al-Qur'an besar.",
+                avatar: "https://placehold.co/150x180/047857/ffffff?text=YUSUF",
+                skills: { makhraj: 90, tajwid: 85, tahsin: 80, kelancaran: 90, adab: 95 },
+                catatanAnak: "Yusuf, hafalan dan ketukan dengungmu sudah sangat mantap! Pertahankan terus makhraj merdumu dan jaga kebersihan hatimu saat membaca Al-Qur'an ya.",
+                potensiAnak: "Memiliki kecerdasan auditori yang istimewa. Sangat berpotensi menjadi Qori cilik berprestasi atau mengikuti kompetisi cabang tahfidz 1 Juz.",
+                kbmPhotos: [
+                    { id: 301, url: "https://placehold.co/600x400/047857/ffffff?text=Setoran+Hafalan+Yusuf", caption: "Sesi Offline: Setoran hafalan surah Al-Kafirun dengan tajwid murni." }
+                ],
+                sessionLogs: [
+                    { date: "2026-05-27", meetingNum: 18, material: "Surah Al-Kafirun", page: 1, status: "Hadir", fluency: "Sangat Lancar (A)", notes: "Setoran lancar tanpa hambatan berarti." }
+                ]
+            },
+            {
+                id: 4,
+                uniqueCode: "zahra-h-89",
+                name: "Zahra Humaira",
+                age: "12 Tahun",
+                parentName: "Ibu Wardah",
+                parentContact: "0811-9922-0055",
+                joinDate: "01 Maret 2026",
+                currentBook: "Al-Qur'an (Al-Baqarah)",
+                currentPage: 24,
+                targetPage: 50,
+                completedMeetings: 22,
+                fluencyLevel: "Sangat Lancar (A)",
+                importantNotes: "Sudah terbiasa mengaji mandiri. Fokus utama bimbingan adalah memantapkan presisi waqaf & ibtida (tempat berhenti membaca).",
+                avatar: "https://placehold.co/150x180/15803d/ffffff?text=ZAHRA",
+                skills: { makhraj: 92, tajwid: 90, tahsin: 85, kelancaran: 95, adab: 90 },
+                catatanAnak: "Zahra, membaca Al-Qur'anmu sudah sangat dewasa dan tenang. Terus asah nafas panjangmu agar waqaf dan ibtidamu semakin presisi.",
+                potensiAnak: "Kemampuan waqaf dan ibtida analitisnya sangat matang. Potensial menguasai kajian tafsir atau ilmu tajwid tingkat tinggi (syarah) secara ilmiah.",
+                kbmPhotos: [
+                    { id: 401, url: "https://placehold.co/600x400/15803d/ffffff?text=Zahra+Tajwid+Al-Baqarah", caption: "Sesi Online: Mengulas waqaf wal ibtida pada ayat panjang." }
+                ],
+                sessionLogs: [
+                    { date: "2026-05-26", meetingNum: 22, material: "Al-Baqarah Ayat 40-50", page: 24, status: "Hadir", fluency: "Sangat Lancar (A)", notes: "Belajar menjaga nafas stabil pada waqaf panjang." }
+                ]
+            },
+            {
+                id: 5,
+                uniqueCode: "alief-p-34",
+                name: "Alief Pratama",
+                age: "10 Tahun",
+                parentName: "Bapak Joko Pratama",
+                parentContact: "0878-1122-3344",
+                joinDate: "10 Februari 2026",
+                currentBook: "Iqra Jilid 2",
+                currentPage: 14,
+                targetPage: 30,
+                completedMeetings: 7,
+                fluencyLevel: "Perlu Bimbingan Ekstra (D)",
+                importantNotes: "Mudah mengantuk di sore hari. Disarankan belajar diselingi mini games tebak kata agar menjaga fokus.",
+                avatar: "https://placehold.co/150x180/1e293b/ffffff?text=ALIEF",
+                skills: { makhraj: 50, tajwid: 45, tahsin: 50, kelancaran: 40, adab: 70 },
+                catatanAnak: "Alief anak sholeh, kalau mengaji sore hari cuci muka dulu ya biar tambah segar! Pelan-pelan mengejanya asal makhrajnya benar, om guru yakin Alief pasti bisa lancar.",
+                potensiAnak: "Mudah terpancing fokusnya jika diajak berinteraksi aktif. Sangat disarankan belajar menggunakan metode kompetitif atau papan skor stiker mingguan.",
+                kbmPhotos: [],
+                sessionLogs: [
+                    { date: "2026-05-25", meetingNum: 7, material: "Iqra Jilid 2", page: 14, status: "Hadir", fluency: "Perlu Bimbingan Ekstra (D)", notes: "Mengeja lambat bentuk huruf sambung awal jilid 2." }
+                ]
+            }
+        ];
+
+        // State Global UI
+        let currentView = 'hub'; // 'hub' | 'teacher' | 'parent'
+        let currentTeacherTab = 'tab-database'; // 'tab-database' | 'tab-curriculum' | 'tab-journal'
+        let selectedStudentId = 1;
+
+        // Pointer Referensi Instance Chart.js untuk re-rendering aman
+        let teacherRadarInstance = null;
+        let parentRadarInstance = null;
+
+        // =========================================================================
+        // 2. SISTEM NOTIFIKASI TOAST CUSTOM
+        // =========================================================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `p-4 rounded-xl shadow-lg border text-xs font-bold flex items-center gap-2 transform translate-y-2 opacity-0 transition-all duration-300 pointer-events-auto`;
+            
+            let bgClass = 'bg-white border-slate-200 text-slate-800';
+            let icon = '<i class="fa-solid fa-circle-info text-blue-500"></i>';
+
+            if (type === 'success') {
+                bgClass = 'bg-emerald-50 border-emerald-200 text-emerald-900';
+                icon = '<i class="fa-solid fa-circle-check text-emerald-600"></i>';
+            } else if (type === 'error') {
+                bgClass = 'bg-rose-50 border-rose-200 text-rose-900';
+                icon = '<i class="fa-solid fa-circle-exclamation text-rose-600"></i>';
+            } else if (type === 'loading') {
+                bgClass = 'bg-slate-50 border-slate-200 text-slate-800';
+                icon = '<i class="fa-solid fa-spinner animate-spin text-slate-600"></i>';
+            }
+
+            toast.innerHTML = `${icon} <span class="flex-1">${message}</span>`;
+            toast.className += ` ${bgClass}`;
+            container.appendChild(toast);
+
+            // Trigger Animation
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            // Auto Remove
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 4000);
+        }
+
+        // =========================================================================
+        // 3. LOGIKA AKSES & PORTAL ROUTING
+        // =========================================================================
+        function updateLayout() {
+            // Sembunyikan semua section
+            document.getElementById('view-hub').classList.add('hidden');
+            document.getElementById('view-teacher').classList.add('hidden');
+            document.getElementById('view-parent').classList.add('hidden');
+
+            const headerIndicator = document.getElementById('headerUserIndicator');
+            const logoutContainer = document.getElementById('logoutBtnContainer');
+
+            if (currentView === 'hub') {
+                document.getElementById('view-hub').classList.remove('hidden');
+                headerIndicator.innerHTML = `
+                    <span class="text-xs bg-emerald-800 px-3 py-1 rounded-full border border-emerald-700/50 text-emerald-200 font-semibold flex items-center gap-1.5">
+                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400 animate-pulse"></span> Offline Mode
+                    </span>
+                `;
+                logoutContainer.innerHTML = '';
+            } else if (currentView === 'teacher') {
+                document.getElementById('view-teacher').classList.remove('hidden');
+                headerIndicator.innerHTML = `
+                    <span class="text-xs bg-emerald-800 px-3 py-1 rounded-full border border-emerald-700/50 text-emerald-100 font-bold flex items-center gap-1.5">
+                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Guru Privat (Sandi Ok)
+                    </span>
+                `;
+                logoutContainer.innerHTML = `
+                    <button onclick="handleLogout()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1">
+                        Keluar Portal <i class="fa-solid fa-right-to-bracket"></i>
+                    </button>
+                `;
+                // Render sub-tabs data
+                renderTeacherStudentList();
+                renderTeacherStudentDetail();
+            } else if (currentView === 'parent') {
+                document.getElementById('view-parent').classList.remove('hidden');
+                headerIndicator.innerHTML = `
+                    <span class="text-xs bg-sky-800 px-3 py-1 rounded-full border border-sky-700/50 text-sky-100 font-bold flex items-center gap-1.5">
+                        <span class="h-1.5 w-1.5 rounded-full bg-sky-400 animate-pulse"></span> Wali Murid (Laporan Unik)
+                    </span>
+                `;
+                logoutContainer.innerHTML = `
+                    <button onclick="handleLogout()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1">
+                        Kembali Ke Portal Hub <i class="fa-solid fa-house"></i>
+                    </button>
+                `;
+                renderParentReport();
+            }
+        }
+
+        function handleTeacherLogin() {
+            const pass = document.getElementById('teacherPasswordInput').value;
+            if (pass === TEACHER_PASSWORD_VAL) {
+                currentView = 'teacher';
+                showToast("Berhasil masuk ke Portal Guru!", "success");
+                updateLayout();
+            } else {
+                showToast("Sandi guru salah, mohon coba lagi.", "error");
+            }
+        }
+
+        function handleParentAccess() {
+            const code = document.getElementById('parentCodeInput').value.trim();
+            const student = students.find(s => s.uniqueCode === code);
+            if (student) {
+                selectedStudentId = student.id;
+                currentView = 'parent';
+                showToast(`Laporan ${student.name} ditemukan!`, "success");
+                updateLayout();
+            } else {
+                showToast("Kode laporan tidak ditemukan. Silakan periksa kembali.", "error");
+            }
+        }
+
+        function demoAccessParent(code) {
+            document.getElementById('parentCodeInput').value = code;
+            handleParentAccess();
+        }
+
+        function handleLogout() {
+            currentView = 'hub';
+            showToast("Anda telah keluar dari sesi.", "info");
+            updateLayout();
+        }
+
+        // =========================================================================
+        // 4. LOGIKA SUB TAB GURU
+        // =========================================================================
+        function switchTeacherTab(tabId) {
+            currentTeacherTab = tabId;
+            document.querySelectorAll('.teacher-tab-content').forEach(content => {
+                content.classList.add('hidden');
+                content.classList.remove('block');
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById(tabId).classList.add('block');
+
+            // Reset tab buttons styling
+            document.querySelectorAll('.teacher-tab-btn').forEach(btn => {
+                btn.className = "teacher-tab-btn px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 rounded-t-lg transition-all flex items-center gap-2 relative";
+            });
+
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.className = "teacher-tab-btn px-4 py-2.5 text-xs font-bold border-b-2 border-emerald-600 text-emerald-600 bg-emerald-50/20 rounded-t-lg transition-all flex items-center gap-2 relative";
+
+            if (tabId === 'tab-database') {
+                renderTeacherStudentList();
+                renderTeacherStudentDetail();
+            } else if (tabId === 'tab-curriculum') {
+                renderCurriculumTab();
+            } else if (tabId === 'tab-journal') {
+                autoFillJournalForm();
+            }
+        }
+
+        // =========================================================================
+        // 5. SUB TAB 1: DATABASE & PROFIL SISWA (GURU VIEW)
+        // =========================================================================
+        function renderTeacherStudentList() {
+            const container = document.getElementById('teacherStudentList');
+            container.innerHTML = '';
+
+            students.forEach(student => {
+                const isActive = student.id === selectedStudentId;
+                const activeStyle = isActive 
+                    ? 'border-emerald-600 bg-emerald-50/50 ring-1 ring-emerald-500' 
+                    : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100';
+
+                const percent = Math.min(100, Math.round((student.completedMeetings / 24) * 100));
+
+                container.innerHTML += `
+                    <div onclick="selectTeacherStudent(${student.id})" class="p-3 rounded-xl border transition-all cursor-pointer ${activeStyle} flex flex-col gap-1.5">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-xs text-slate-800">${student.name}</h4>
+                            <span class="text-[9px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-bold">${student.currentBook.split(' ')[0]}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
+                                <div class="bg-emerald-600 h-full rounded-full" style="width: ${percent}%"></div>
+                            </div>
+                            <span class="text-[9px] font-mono text-slate-500 font-bold">${student.completedMeetings}/24</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function selectTeacherStudent(id) {
+            selectedStudentId = id;
+            renderTeacherStudentList();
+            renderTeacherStudentDetail();
+        }
+
+        // Render Detil Murid Terpilih lengkap dengan form unggah foto KBM & Slider Evaluasi Metrik Raport
+        function renderTeacherStudentDetail() {
+            const student = students.find(s => s.id === selectedStudentId);
+            const container = document.getElementById('teacherStudentDetail');
+            if (!student) return;
+
+            const percent = Math.min(100, Math.round((student.completedMeetings / 24) * 100));
+
+            // Generate Riwayat Laporan List
+            let logsHtml = '';
+            if (student.sessionLogs.length === 0) {
+                logsHtml = `<div class="text-center py-6 text-slate-400 text-xs">Belum ada catatan jurnal.</div>`;
+            } else {
+                student.sessionLogs.forEach(log => {
+                    logsHtml += `
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex flex-col gap-1.5">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-slate-700">${log.material} • Hal. ${log.page} (Sesi ${log.meetingNum})</span>
+                                <span class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md font-bold">${log.status}</span>
+                            </div>
+                            <p class="text-slate-600 italic">"${log.notes}"</p>
+                        </div>
+                    `;
+                });
+            }
+
+            // Generate Photo Gallery
+            let photosHtml = '';
+            if (student.kbmPhotos.length === 0) {
+                photosHtml = `<div class="text-center py-6 text-slate-400 text-xs col-span-2">Belum ada foto KBM diunggah.</div>`;
+            } else {
+                student.kbmPhotos.forEach(photo => {
+                    photosHtml += `
+                        <div class="bg-slate-50 border border-slate-200 p-2 rounded-xl flex flex-col gap-2 shadow-sm">
+                            <img src="${photo.url}" alt="KBM" class="w-full h-24 object-cover rounded-lg" onerror="this.src='https://placehold.co/600x400/065f46/ffffff?text=KBM+Ngaji'">
+                            <p class="text-[10px] text-slate-500 font-medium leading-relaxed italic">"${photo.caption}"</p>
+                            <button onclick="deleteKbmPhoto(${photo.id})" class="text-[9px] text-rose-600 font-bold hover:underline self-end">Hapus Foto</button>
+                        </div>
+                    `;
+                });
+            }
+
+            // Simulated Parent Link
+            const domainUrl = window.location.href.split('?')[0];
+            const simulatedParentLink = `${domainUrl}?code=${student.uniqueCode}`;
+
+            container.innerHTML = `
+                <!-- PROFILE IDENTITAS -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-4">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 pb-4 border-b border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <img src="${student.avatar}" alt="${student.name}" class="w-12 h-14 object-cover border border-slate-350 rounded-lg shadow-sm" onerror="this.src='https://placehold.co/150x180/065f46/ffffff?text=FOTO'">
+                            <div>
+                                <span class="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wider">Unik ID: #${student.id}</span>
+                                <h2 class="text-xl font-bold text-slate-800">${student.name}</h2>
+                                <p class="text-xs text-slate-500 mt-0.5">Gabung Sejak: <strong>${student.joinDate}</strong></p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:items-end gap-1.5">
+                            <!-- Tombol Salin Link Unik Orang Tua -->
+                            <button onclick="copyToClipboard('${simulatedParentLink}')" class="bg-sky-50 hover:bg-sky-100 text-sky-800 text-[11px] font-bold px-3 py-2 rounded-xl border border-sky-200 transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-copy"></i> Salin Link Orang Tua
+                            </button>
+                            <span class="text-[9px] text-slate-400 italic">Kirim link ini ke WA Orang Tua</span>
+                        </div>
+                    </div>
+
+                    <!-- Grid Info Profil -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <span class="text-[10px] text-slate-400 font-bold block mb-1">Usia Siswa</span>
+                            <p class="font-bold text-slate-700">${student.age}</p>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <span class="text-[10px] text-slate-400 font-bold block mb-1">Nama Orang Tua</span>
+                            <p class="font-bold text-slate-700">${student.parentName}</p>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <span class="text-[10px] text-slate-400 font-bold block mb-1">WhatsApp Hub</span>
+                            <p class="font-bold text-emerald-600">${student.parentContact}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- METRIK PENILAIAN & SPIDER CHART EDITOR (RAPORT BERKALA) -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-6">
+                    <div class="border-b border-slate-100 pb-2">
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-emerald-600"></i> Metrik Penilaian Kemampuan (Spider Chart)
+                        </h3>
+                        <p class="text-[11px] text-slate-400">Sesuaikan slider penilaian di bawah ini untuk mengupdate grafik kemampuan ngaji siswa secara dinamis.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                        <!-- Left: Sliders Form -->
+                        <div class="md:col-span-7 flex flex-col gap-3">
+                            <div class="flex flex-col gap-1">
+                                <div class="flex justify-between text-xs font-bold">
+                                    <span class="text-slate-600">Makhraj Huruf (Pelafalan)</span>
+                                    <span id="labelSkillMakhraj" class="text-emerald-700 font-mono">${student.skills.makhraj}</span>
+                                </div>
+                                <input type="range" min="10" max="100" value="${student.skills.makhraj}" oninput="updateSkillScore('makhraj', this.value)" class="w-full accent-emerald-600 h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <div class="flex justify-between text-xs font-bold">
+                                    <span class="text-slate-600">Tajwid (Hukum Dengung / Panjang)</span>
+                                    <span id="labelSkillTajwid" class="text-emerald-700 font-mono">${student.skills.tajwid}</span>
+                                </div>
+                                <input type="range" min="10" max="100" value="${student.skills.tajwid}" oninput="updateSkillScore('tajwid', this.value)" class="w-full accent-emerald-600 h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <div class="flex justify-between text-xs font-bold">
+                                    <span class="text-slate-600">Tahsin (Keindahan Bacaan / Tempo)</span>
+                                    <span id="labelSkillTahsin" class="text-emerald-700 font-mono">${student.skills.tahsin}</span>
+                                </div>
+                                <input type="range" min="10" max="100" value="${student.skills.tahsin}" oninput="updateSkillScore('tahsin', this.value)" class="w-full accent-emerald-600 h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <div class="flex justify-between text-xs font-bold">
+                                    <span class="text-slate-600">Kelancaran Membaca</span>
+                                    <span id="labelSkillKelancaran" class="text-emerald-700 font-mono">${student.skills.kelancaran}</span>
+                                </div>
+                                <input type="range" min="10" max="100" value="${student.skills.kelancaran}" oninput="updateSkillScore('kelancaran', this.value)" class="w-full accent-emerald-600 h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <div class="flex justify-between text-xs font-bold">
+                                    <span class="text-slate-600">Adab & Fokus Belajar</span>
+                                    <span id="labelSkillAdab" class="text-emerald-700 font-mono">${student.skills.adab}</span>
+                                </div>
+                                <input type="range" min="10" max="100" value="${student.skills.adab}" oninput="updateSkillScore('adab', this.value)" class="w-full accent-emerald-600 h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Right: Dynamic Live Spider Chart Preview -->
+                        <div class="md:col-span-5 flex flex-col items-center justify-center bg-slate-50 p-4 border border-slate-100 rounded-2xl h-64">
+                            <canvas id="teacherRadarChart" class="max-h-56 max-w-full"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Input Detail Catatan untuk Anak & Potensi di Raport PDF -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="font-bold text-slate-600">Catatan Khusus untuk Anak (Raport PDF)</label>
+                            <textarea id="teacherCatatanAnak" rows="2" oninput="updateRaportField('catatanAnak', this.value)" placeholder="Ketik kalimat motivasi langsung untuk si anak..." class="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none font-medium text-slate-700 bg-slate-50">${student.catatanAnak}</textarea>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="font-bold text-slate-600">Potensi Anak untuk Berkembang (Raport PDF)</label>
+                            <textarea id="teacherPotensiAnak" rows="2" oninput="updateRaportField('potensiAnak', this.value)" placeholder="Ketik arah potensi bakat ngaji anak di masa depan..." class="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none font-medium text-slate-700 bg-slate-50">${student.potensiAnak}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- UNGGAH FOTO KBM (ONLINE/OFFLINE) -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-4">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-camera text-slate-500"></i> Dokumentasi KBM (Online / Offline)
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Upload Input Form -->
+                        <div class="border-2 border-dashed border-slate-200 hover:border-emerald-500 rounded-xl p-4 transition-all flex flex-col items-center justify-center gap-2 bg-slate-50/50">
+                            <input type="file" id="photoFileInput" accept="image/*" class="hidden" onchange="handleKbmPhotoUpload()">
+                            <button onclick="document.getElementById('photoFileInput').click()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all">
+                                Pilih File Foto
+                            </button>
+                            <input id="photoCaptionInput" type="text" placeholder="Ketik keterangan foto (KBM Online/Offline)..." class="w-full mt-2 p-2 text-xs border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-emerald-500">
+                            <span class="text-[10px] text-slate-400">File maks 1MB (PNG/JPG)</span>
+                        </div>
+                        <!-- Gallery List -->
+                        <div class="grid grid-cols-2 gap-3" id="photoGalleryContainer">
+                            ${photosHtml}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CATATAN PENTING GURU -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-clipboard-check text-slate-500"></i> Karakter & Catatan Khusus Guru
+                    </h3>
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                        <p class="text-xs text-amber-900 leading-relaxed font-medium">"${student.importantNotes}"</p>
+                    </div>
+                </div>
+
+                <!-- RIWAYAT JURNAL -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock-rotate-left text-slate-500"></i> Riwayat Jurnal Terakhir
+                    </h3>
+                    <div class="flex flex-col gap-2.5">
+                        ${logsHtml}
+                    </div>
+                </div>
+            `;
+
+            // Jalankan Render Chart Sisi Guru
+            setTimeout(() => {
+                renderRadarChart('teacherRadarChart', student.skills, true);
+            }, 50);
+        }
+
+        // Copy Simulated Link to Clipboard Utility
+        function copyToClipboard(text) {
+            const tempEl = document.createElement('textarea');
+            tempEl.value = text;
+            document.body.appendChild(tempEl);
+            tempEl.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempEl);
+            showToast("Simulasi Link disalin! Lu bisa bagikan ini.", "success");
+        }
+
+        // =========================================================================
+        // 6. DETIL SISWA: UPLOAD & HAPUS FOTO KBM
+        // =========================================================================
+        function handleKbmPhotoUpload() {
+            const student = students.find(s => s.id === selectedStudentId);
+            if (!student) return;
+
+            const fileInput = document.getElementById('photoFileInput');
+            const captionInput = document.getElementById('photoCaptionInput');
+            const file = fileInput.files[0];
+            const caption = captionInput.value.trim() || "Proses Kegiatan Belajar Mengajar";
+
+            if (!file) return;
+
+            if (file.size > 1024 * 1024) {
+                showToast("Ukuran file terlalu besar. Maksimal 1MB.", "error");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Url = e.target.result;
+                const newPhoto = {
+                    id: Date.now(),
+                    url: base64Url,
+                    caption: caption
+                };
+
+                student.kbmPhotos.unshift(newPhoto);
+                captionInput.value = '';
+                fileInput.value = '';
+
+                showToast("Foto KBM berhasil diunggah!", "success");
+                renderTeacherStudentDetail();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function deleteKbmPhoto(photoId) {
+            const student = students.find(s => s.id === selectedStudentId);
+            if (!student) return;
+
+            student.kbmPhotos = student.kbmPhotos.filter(p => p.id !== photoId);
+            showToast("Foto KBM berhasil dihapus.", "success");
+            renderTeacherStudentDetail();
+        }
+
+        // Update Nilai Slider Penilaian di Database Lokal & Chart Re-render
+        function updateSkillScore(skillKey, value) {
+            const student = students.find(s => s.id === selectedStudentId);
+            if (!student) return;
+
+            const intVal = parseInt(value);
+            student.skills[skillKey] = intVal;
+
+            // Update Label Teks
+            const capitalizedKey = skillKey.charAt(0).toUpperCase() + skillKey.slice(1);
+            const labelEl = document.getElementById(`labelSkill${capitalizedKey}`);
+            if (labelEl) labelEl.innerText = intVal;
+
+            // Re-render chart tanpa menghancurkan instance jika memungkinkan
+            if (teacherRadarInstance) {
+                const datasetIndex = { makhraj: 0, tajwid: 1, tahsin: 2, kelancaran: 3, adab: 4 }[skillKey];
+                teacherRadarInstance.data.datasets[0].data = [
+                    student.skills.makhraj,
+                    student.skills.tajwid,
+                    student.skills.tahsin,
+                    student.skills.kelancaran,
+                    student.skills.adab
+                ];
+                teacherRadarInstance.update('none'); // Update instan tanpa animasi berlebih
+            }
+        }
+
+        // Update Form Input Raport Biasa ke DB Lokal
+        function updateRaportField(fieldKey, value) {
+            const student = students.find(s => s.id === selectedStudentId);
+            if (student) {
+                student[fieldKey] = value;
+            }
+        }
+
+        // =========================================================================
+        // 7. SUB TAB 2: KURIKULUM & SILABUS (GURU VIEW)
+        // =========================================================================
+        function renderCurriculumTab() {
+            const select = document.getElementById('curriculumStudentSelect');
+            
+            // Populate select options if empty
+            if (select.children.length === 0) {
+                select.innerHTML = '';
+                students.forEach(s => {
+                    select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+                });
+            }
+
+            const studentId = parseInt(select.value) || selectedStudentId;
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            // Overview Progress
+            const percent = Math.min(100, Math.round((student.completedMeetings / 24) * 100));
+            const overview = document.getElementById('curriculumOverviewBar');
+            overview.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <img src="${student.avatar}" alt="${student.name}" class="w-9 h-11 object-cover rounded border border-slate-200" onerror="this.src='https://placehold.co/150x180/065f46/ffffff?text=FOTO'">
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-800">${student.name}</h4>
+                        <p class="text-[10px] text-slate-500">Materi: <strong>${student.currentBook} (Hal. ${student.currentPage})</strong></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-[11px] font-bold text-emerald-800">${student.completedMeetings} / 24 Sesi Selesai</span>
+                    <button onclick="increaseSesiProgress(${student.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold py-1.5 px-3 rounded-lg transition-all shadow-sm">
+                        <i class="fa-solid fa-plus"></i> Sesi Baru Selesai
+                    </button>
+                </div>
+            `;
+
+            // Render Cards Kurikulum
+            const container = document.getElementById('curriculumCardsContainer');
+            container.innerHTML = '';
+
+            curriculumData.forEach((curr, index) => {
+                const targetLimit = (index + 1) * 2;
+                const isCompleted = student.completedMeetings >= targetLimit;
+                const isCurrent = !isCompleted && (student.completedMeetings >= (targetLimit - 2));
+
+                let statusBadge = '';
+                let borderStyle = '';
+                if (isCompleted) {
+                    statusBadge = `<span class="bg-emerald-100 text-emerald-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> SELESAI</span>`;
+                    borderStyle = 'border-emerald-200 bg-emerald-50/10 opacity-75';
+                } else if (isCurrent) {
+                    statusBadge = `<span class="bg-amber-100 text-amber-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded flex items-center gap-1 animate-pulse"><i class="fa-solid fa-spinner"></i> BERJALAN</span>`;
+                    borderStyle = 'border-amber-400 bg-amber-50/20 ring-1 ring-amber-400/30';
+                } else {
+                    statusBadge = `<span class="bg-slate-100 text-slate-400 text-[9px] font-extrabold px-1.5 py-0.5 rounded flex items-center gap-1"><i class="fa-solid fa-lock"></i> KUNCI</span>`;
+                    borderStyle = 'border-slate-200 bg-white';
+                }
+
+                container.innerHTML += `
+                    <div class="p-4 rounded-2xl border transition-all flex flex-col gap-3 ${borderStyle}">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-mono">${curr.range}</span>
+                            ${statusBadge}
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs text-slate-800 leading-tight">${curr.title}</h4>
+                            <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">${curr.detail}</p>
+                        </div>
+                        <div class="pt-2 border-t border-dashed border-slate-100 text-[10px] text-slate-600 font-medium leading-relaxed">
+                            <strong class="text-slate-400 uppercase tracking-wide block mb-0.5 text-[9px]">Panduan Guru:</strong>
+                            <i class="fa-solid fa-chalkboard-user text-emerald-500 mr-1"></i> ${curr.method}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function increaseSesiProgress(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            if (student.completedMeetings >= 24) {
+                showToast("Murid ini telah lulus program 24 sesi!", "success");
+                return;
+            }
+
+            student.completedMeetings += 1;
+            showToast(`Sesi ${student.name} diperbarui!`, "success");
+            renderCurriculumTab();
+        }
+
+        // =========================================================================
+        // 8. SUB TAB 3: JURNAL & INPUT SESI (GURU VIEW)
+        // =========================================================================
+        function autoFillJournalForm() {
+            const select = document.getElementById('formStudentSelect');
+            
+            // Populate select options if empty
+            if (select.children.length === 0) {
+                select.innerHTML = '';
+                students.forEach(s => {
+                    select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+                });
+            }
+
+            // Populate meeting num dropdown if empty
+            const meetingNumSelect = document.getElementById('formMeetingNum');
+            if (meetingNumSelect.children.length === 0) {
+                meetingNumSelect.innerHTML = '';
+                for (let i = 1; i <= 24; i++) {
+                    meetingNumSelect.innerHTML += `<option value="${i}">Pertemuan Sesi Ke-${i}</option>`;
+                }
+            }
+
+            const studentId = parseInt(select.value) || 1;
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            let nextSesi = student.completedMeetings + 1;
+            if (nextSesi > 24) nextSesi = 24;
+
+            document.getElementById('formMeetingNum').value = nextSesi;
+            document.getElementById('formMateri').value = student.currentBook;
+            document.getElementById('formHalaman').value = student.currentPage;
+            document.getElementById('formKelancaran').value = student.fluencyLevel;
+            document.getElementById('formTanggal').value = new Date().toISOString().split('T')[0];
+            document.getElementById('formCatatan').value = '';
+            document.getElementById('aiPRBox').classList.add('hidden');
+        }
+
+        function applyFeedbackTemplate(type) {
+            const textarea = document.getElementById('formCatatan');
+            const templates = {
+                fokus: "Sangat fokus hari ini, pelafalan huruf hijaiyah makhraj sudah sangat bagus dan bersih.",
+                tajwid: "Harap diperhatikan kembali panjang pendek Mad Thabi'i agar tidak berlebih atau kurang ketukan.",
+                ulang: "Sesi mengaji berjalan baik, harap materi hari ini diulas kembali di rumah bersama orang tua."
+            };
+            textarea.value = templates[type] || '';
+        }
+
+        // Proses Form Submission Sesi Baru
+        function handleJournalSubmit(event) {
+            event.preventDefault();
+
+            const studentId = parseInt(document.getElementById('formStudentSelect').value);
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            const date = document.getElementById('formTanggal').value;
+            const meetingNum = parseInt(document.getElementById('formMeetingNum').value);
+            const material = document.getElementById('formMateri').value;
+            const page = parseInt(document.getElementById('formHalaman').value);
+            const status = document.querySelector('input[name="attendance"]:checked').value;
+            const fluency = document.getElementById('formKelancaran').value;
+            const notes = document.getElementById('formCatatan').value;
+
+            const newLog = {
+                date: date,
+                meetingNum: meetingNum,
+                material: material,
+                page: page,
+                status: status,
+                fluency: fluency,
+                notes: notes
+            };
+
+            student.sessionLogs.unshift(newLog);
+
+            // Update Master Data
+            student.currentBook = material;
+            student.currentPage = page;
+            student.fluencyLevel = fluency;
+            if (status === 'Hadir' && meetingNum > student.completedMeetings) {
+                student.completedMeetings = meetingNum;
+            }
+
+            showToast(`Sesi belajar ${student.name} berhasil disimpan!`, "success");
+            
+            // Pindah Tab ke Database
+            switchTeacherTab('tab-database');
+        }
+
+        // =========================================================================
+        // 9. ASISTEN INTEGRASI GEMINI AI
+        // =========================================================================
+        async function callGeminiAPI(prompt, systemInstruction) {
+            const apiKey = ""; // Canvas Runtime otomatis menginjeksikannya saat runtime
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-preview:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemInstruction }] }
+            };
+            
+            let delay = 1000;
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (generatedText) return generatedText;
+                    }
+                } catch (e) {
+                    // Fail-silent, let retry proceed
+                }
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2;
+            }
+            throw new Error("Koneksi gagal. Coba hubungkan internet kembali.");
+        }
+
+        // AI Feedback Generator dari Form Sesi
+        async function generateAiFeedbackFromForm() {
+            const btn = document.querySelector('button[onclick="generateAiFeedbackFromForm()"]');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Polling...`;
+
+            const data = {
+                name: document.getElementById('formStudentSelect').options[document.getElementById('formStudentSelect').selectedIndex].text.split(' (')[0],
+                material: document.getElementById('formMateri').value,
+                halaman: document.getElementById('formHalaman').value,
+                kelancaran: document.getElementById('formKelancaran').value,
+                catatan: document.getElementById('formCatatan').value
+            };
+
+            const systemInstruction = `Kamu adalah Ustadz/Ustadzah guru ngaji privat yang ramah dan bijaksana.
+Formulasikan evaluasi kasar dari guru menjadi catatan laporan yang sopan, memotivasi, dan menghangatkan hati bagi orang tua murid.
+Aturan:
+1. Sapa orang tua dengan hormat.
+2. Maksimal sepanjang 2-3 kalimat bersahabat.
+3. Berikan saran korektif namun dibungkus dengan kalimat optimis.
+Jangan sertakan format markdown tebal atau bintang di dalam respons.`;
+
+            const prompt = `Formulasikan feedback untuk:
+Nama Siswa: ${data.name}
+Materi: ${data.material} (Hal. ${data.halaman})
+Tingkat Kelancaran: ${data.kelancaran}
+Catatan Kasar: "${data.catatan}"`;
+
+            try {
+                const responseText = await callGeminiAPI(prompt, systemInstruction);
+                document.getElementById('formCatatan').value = responseText.replace(/[*_#`]/g, '').trim();
+                showToast("Catatan sukses dipoles dengan AI!", "success");
+            } catch (e) {
+                showToast("Kendala koneksi AI. Silakan tulis manual.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+        // AI Tips PR Generator dari Form Sesi
+        async function generateAiTipsFromForm() {
+            const btn = document.querySelector('button[onclick="generateAiTipsFromForm()"]');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Membuat...`;
+
+            const data = {
+                name: document.getElementById('formStudentSelect').options[document.getElementById('formStudentSelect').selectedIndex].text.split(' (')[0],
+                material: document.getElementById('formMateri').value,
+                halaman: document.getElementById('formHalaman').value,
+                kelancaran: document.getElementById('formKelancaran').value,
+                catatan: document.getElementById('formCatatan').value
+            };
+
+            const systemInstruction = `Kamu adalah ahli metodologi pengajaran Al-Qur'an anak-anak.
+Rancanglah tepat 3 poin bimbingan latihan di rumah bagi orang tua agar mendampingi anak secara efektif.
+Aturan:
+1. Tulis langsung list 1, 2, 3 tanpa sapaan pembuka/penutup.
+2. Setiap poin maksimal 1 kalimat petunjuk konkret (misal: "Ulangi baris 5-7 sebanyak 3 kali").
+3. Jangan pakai format tebal markdown.`;
+
+            const prompt = `Berikan tips latihan rumah untuk:
+Nama: ${data.name}
+Materi: ${data.material} Hal ${data.halaman}
+Koreksi: "${data.catatan}"`;
+
+            try {
+                const responseText = await callGeminiAPI(prompt, systemInstruction);
+                document.getElementById('aiPRBox').classList.remove('hidden');
+                document.getElementById('aiPRContent').innerHTML = responseText.replace(/\n/g, '<br>');
+                showToast("PR Mandiri AI berhasil dirancang!", "success");
+            } catch (e) {
+                showToast("Gagal menghubungi AI Planner.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+
+        // =========================================================================
+        // 10. METODE GENERATOR SPIDER CHART (CHART.JS)
+        // =========================================================================
+        function renderRadarChart(canvasId, skills, isTeacher = true) {
+            const canvasCtx = document.getElementById(canvasId).getContext('2d');
+            
+            // Hancurkan instansi lama untuk mencegah tabrakan memori render
+            if (isTeacher && teacherRadarInstance) teacherRadarInstance.destroy();
+            if (!isTeacher && parentRadarInstance) parentRadarInstance.destroy();
+
+            const chartData = {
+                labels: ['Makhraj', 'Tajwid', 'Tahsin', 'Kelancaran', 'Adab/Fokus'],
+                datasets: [{
+                    label: 'Performa Bacaan',
+                    data: [skills.makhraj, skills.tajwid, skills.tahsin, skills.kelancaran, skills.adab],
+                    backgroundColor: 'rgba(6, 95, 70, 0.2)', // Emerald green translucent
+                    borderColor: 'rgba(6, 95, 70, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(4, 120, 87, 1)',
+                    pointRadius: 3
+                }]
+            };
+
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(148, 163, 184, 0.3)' },
+                        grid: { color: 'rgba(148, 163, 184, 0.2)' },
+                        pointLabels: {
+                            font: { size: 10, family: 'Plus Jakarta Sans', weight: 'bold' },
+                            color: '#475569'
+                        },
+                        ticks: { display: false, stepSize: 20 },
+                        min: 0,
+                        max: 100
+                    }
+                }
+            };
+
+            const newChart = new Chart(canvasCtx, {
+                type: 'radar',
+                data: chartData,
+                options: options
+            });
+
+            if (isTeacher) {
+                teacherRadarInstance = newChart;
+            } else {
+                parentRadarInstance = newChart;
+            }
+        }
+
+
+        // =========================================================================
+        // 11. PORTAL VIEW ORANG TUA (PENGGUNA LINK UNIK DENGAN SPIDER CHART)
+        // =========================================================================
+        function renderParentReport() {
+            const student = students.find(s => s.id === selectedStudentId);
+            const container = document.getElementById('parentReportContainer');
+            if (!student) return;
+
+            const percent = Math.min(100, Math.round((student.completedMeetings / 24) * 100));
+
+            // Generate Riwayat Logs untuk Orang Tua
+            let logsHtml = '';
+            student.sessionLogs.forEach(log => {
+                const fDate = new Date(log.date).toLocaleDateString('id-ID', {
+                    day: 'numeric', month: 'long', year: 'numeric'
+                });
+                logsHtml += `
+                    <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex flex-col gap-2 shadow-sm">
+                        <div class="flex flex-col sm:flex-row sm:justify-between gap-2 border-b border-dashed border-slate-200 pb-2">
+                            <span class="font-bold text-xs text-slate-700 flex items-center gap-1">
+                                <i class="fa-solid fa-book text-emerald-600"></i> ${log.material} • Hal. ${log.page}
+                            </span>
+                            <span class="text-[10px] font-bold text-slate-500 font-mono flex items-center gap-1">
+                                <i class="fa-solid fa-calendar-day"></i> ${fDate}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-600 italic leading-relaxed">"${log.notes}"</p>
+                        <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 mt-1">
+                            <span>Kategori Sesi: <strong class="text-slate-600">${log.fluency}</strong></span>
+                            <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md text-[9px]">${log.status}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Generate Gallery untuk Orang Tua
+            let photosHtml = '';
+            if (student.kbmPhotos.length === 0) {
+                photosHtml = `
+                    <div class="col-span-2 text-center py-8 bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-xs text-slate-400">
+                        <i class="fa-solid fa-images text-xl mb-2 block"></i> Belum ada foto dokumentasi diunggah untuk murid ini.
+                    </div>
+                `;
+            } else {
+                student.kbmPhotos.forEach(p => {
+                    photosHtml += `
+                        <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-2">
+                            <img src="${p.url}" alt="KBM" class="w-full h-32 object-cover rounded-xl shadow-inner" onerror="this.src='https://placehold.co/600x400/065f46/ffffff?text=KBM+Ngaji'">
+                            <p class="text-[10px] text-slate-500 leading-relaxed font-semibold italic text-center">"${p.caption}"</p>
+                        </div>
+                    `;
+                });
+            }
+
+            container.innerHTML = `
+                <!-- PROFILE BANNER -->
+                <div class="bg-white p-6 rounded-3xl shadow border border-slate-200 flex flex-col gap-6">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-100 pb-4">
+                        <div class="flex items-center gap-3">
+                            <img src="${student.avatar}" alt="${student.name}" class="w-12 h-14 object-cover border border-slate-200 rounded-lg shadow-sm" onerror="this.src='https://placehold.co/150x180/065f46/ffffff?text=FOTO'">
+                            <div>
+                                <span class="text-[9px] font-extrabold bg-sky-100 text-sky-800 px-2 py-0.5 rounded uppercase tracking-wider">Halaman Laporan Wali Murid</span>
+                                <h2 class="text-2xl font-extrabold text-slate-900 mt-1">${student.name}</h2>
+                                <p class="text-xs text-slate-500 mt-0.5">Pendamping Sesi: <strong>Ust. Pendamping</strong></p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <!-- BUTTON DOWNLOAD REPORT PDF -->
+                            <button onclick="downloadStudentPdfReport()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-850 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-file-pdf text-sm"></i> Unduh Raport PDF
+                            </button>
+                            <span class="text-xs font-bold text-slate-400 hidden sm:block">A4 Printable</span>
+                        </div>
+                    </div>
+
+                    <!-- Visual Progress Bar Sesi 24 -->
+                    <div class="bg-emerald-50/40 p-5 rounded-2xl border border-emerald-100 flex flex-col gap-3">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-emerald-800">Perkembangan Sesi Mengaji</span>
+                            <span class="font-mono font-bold text-emerald-800">${student.completedMeetings} dari 24 Sesi (${percent}%)</span>
+                        </div>
+                        <div class="h-3.5 bg-emerald-100 rounded-full overflow-hidden flex">
+                            <div class="bg-emerald-600 h-full rounded-full transition-all duration-500 shadow-sm" style="width: ${percent}%"></div>
+                        </div>
+                        <p class="text-[10px] text-emerald-700/80 leading-relaxed">
+                            Progres di atas menunjukkan seberapa jauh anak anda telah mengarungi jalur kurikulum terstruktur (Zero to Al-Qur'an).
+                        </p>
+                    </div>
+
+                    <!-- Info Latar Belakang Murid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <span class="text-[10px] text-slate-400 font-bold block mb-1">Materi Terakhir</span>
+                            <p class="font-bold text-slate-800">${student.currentBook} • Halaman ${student.currentPage}</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <span class="text-[10px] text-slate-400 font-bold block mb-1">Status Kelancaran</span>
+                            <p class="font-bold text-emerald-600">${student.fluencyLevel}</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <span class="text-[10px] text-slate-400 font-bold block mb-1">Target Kurikulum Terdekat</span>
+                            <p class="font-bold text-rose-600">Halaman ${student.targetPage}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DIAGRAM SPIDER CHART & RAPORT EVALUASI -->
+                <div class="bg-white p-6 rounded-3xl shadow border border-slate-200">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-pie text-slate-500"></i> Diagram Analitik Kemampuan & Karakter Belajar
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                        <div class="md:col-span-4 flex flex-col justify-center items-center bg-slate-50 rounded-2xl p-4 border border-slate-100 h-64">
+                            <canvas id="parentRadarChart"></canvas>
+                        </div>
+
+                        <!-- Info Detail Keterangan Raport -->
+                        <div class="md:col-span-8 flex flex-col gap-4 text-xs">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="p-3 bg-slate-50/50 rounded-xl border">
+                                    <span class="font-bold text-slate-400 text-[10px] uppercase block mb-0.5">Makhraj Huruf</span>
+                                    <p class="font-extrabold text-sm text-emerald-800">${student.skills.makhraj} / 100</p>
+                                </div>
+                                <div class="p-3 bg-slate-50/50 rounded-xl border">
+                                    <span class="font-bold text-slate-400 text-[10px] uppercase block mb-0.5">Hukum Tajwid</span>
+                                    <p class="font-extrabold text-sm text-emerald-800">${student.skills.tajwid} / 100</p>
+                                </div>
+                                <div class="p-3 bg-slate-50/50 rounded-xl border">
+                                    <span class="font-bold text-slate-400 text-[10px] uppercase block mb-0.5">Tahsin (Irama & Tempo)</span>
+                                    <p class="font-extrabold text-sm text-emerald-800">${student.skills.tahsin} / 100</p>
+                                </div>
+                                <div class="p-3 bg-slate-50/50 rounded-xl border">
+                                    <span class="font-bold text-slate-400 text-[10px] uppercase block mb-0.5">Adab & Fokus Belajar</span>
+                                    <p class="font-extrabold text-sm text-emerald-800">${student.skills.adab} / 100</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Catatan Belajar & Potensi -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="p-4 bg-amber-50/70 border border-amber-200/50 rounded-2xl">
+                                    <h4 class="font-bold text-amber-900 mb-1 flex items-center gap-1">
+                                        <i class="fa-solid fa-comment-sms"></i> Catatan Khusus untuk Anak:
+                                    </h4>
+                                    <p class="text-amber-800 leading-relaxed font-medium italic">"${student.catatanAnak}"</p>
+                                </div>
+                                <div class="p-4 bg-emerald-50/50 border border-emerald-200/30 rounded-2xl">
+                                    <h4 class="font-bold text-emerald-900 mb-1 flex items-center gap-1">
+                                        <i class="fa-solid fa-cubes"></i> Potensi Berkembang:
+                                    </h4>
+                                    <p class="text-emerald-800 leading-relaxed font-medium">"${student.potensiAnak}"</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DOKUMENTASI PROSES BELAJAR -->
+                <div class="bg-white p-6 rounded-3xl shadow border border-slate-200">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-1.5">
+                        <i class="fa-solid fa-images text-slate-500"></i> Galeri Dokumentasi KBM Anak
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        ${photosHtml}
+                    </div>
+                </div>
+
+                <!-- RIWAYAT JURNAL BELAJAR -->
+                <div class="bg-white p-6 rounded-3xl shadow border border-slate-200">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock-rotate-left text-slate-500"></i> Laporan Aktivitas Harian Belajar
+                    </h3>
+                    <div class="flex flex-col gap-3">
+                        ${logsHtml}
+                    </div>
+                </div>
+            `;
+
+            // Trigger rendering parent chart.js radar canvas
+            setTimeout(() => {
+                renderRadarChart('parentRadarChart', student.skills, false);
+            }, 50);
+        }
+
+        // =========================================================================
+        // 12. LOGIKA EXPORTER HTML TO PDF (HTML2PDF.JS)
+        // =========================================================================
+        function downloadStudentPdfReport() {
+            const student = students.find(s => s.id === selectedStudentId);
+            if (!student) return;
+
+            showToast("Menyiapkan dokumen PDF...", "loading");
+
+            // 1. Sinkronisasi Data Teks ke Elemen Template PDF
+            document.getElementById('pdfSiswaNama').innerText = student.name;
+            document.getElementById('pdfSiswaUsia').innerText = student.age;
+            document.getElementById('pdfSiswaMateri').innerText = student.currentBook;
+            document.getElementById('pdfSiswaHalaman').innerText = `Hal. ${student.currentPage}`;
+            document.getElementById('pdfSiswaWali').innerText = student.parentName;
+            document.getElementById('pdfSiswaSesi').innerText = `${student.completedMeetings} / 24 Sesi`;
+            document.getElementById('pdfSiswaFoto').src = student.avatar;
+
+            document.getElementById('pdfValMakhraj').innerText = `${student.skills.makhraj} / 100`;
+            document.getElementById('pdfValTajwid').innerText = `${student.skills.tajwid} / 100`;
+            document.getElementById('pdfValTahsin').innerText = `${student.skills.tahsin} / 100`;
+            document.getElementById('pdfValKelancaran').innerText = `${student.skills.kelancaran} / 100`;
+            document.getElementById('pdfValAdab').innerText = `${student.skills.adab} / 100`;
+
+            document.getElementById('pdfSiswaCatatan').innerText = student.catatanAnak;
+            document.getElementById('pdfSiswaPotensi').innerText = student.potensiAnak;
+            
+            const now = new Date();
+            document.getElementById('pdfExportTimestamp').innerText = `Waktu unduh: ${now.toLocaleDateString('id-ID')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} WIB`;
+
+            // 2. Trik Render Spider Chart to PDF: Konversi canvas aktif Chart.js ke Base64 Image
+            if (parentRadarInstance) {
+                const base64Img = parentRadarInstance.toBase64Image();
+                document.getElementById('pdfRadarImage').src = base64Img;
+            }
+
+            // 3. Konfigurasi Ekspor html2pdf
+            const element = document.getElementById('pdfPrintTemplate');
+            const opt = {
+                margin:       [0.4, 0.4, 0.4, 0.4], // 1cm margin standard A4
+                filename:     `Raport_Ngaji_${student.name.replace(/\s+/g, '_')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true }, // Skala retina 2x untuk gambar tajam
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Jalankan Trigger Pembentukan PDF
+            setTimeout(() => {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    showToast("Laporan PDF berhasil diunduh!", "success");
+                }).catch(err => {
+                    showToast("Gagal memproses dokumen PDF.", "error");
+                });
+            }, 300);
+        }
+
+        // =========================================================================
+        // 13. BOOTSTRAP INITIALIZATION ON PAGE LOAD
+        // =========================================================================
+        function initApp() {
+            // Cek jika link memiliki parameter 'code' untuk akses instan orang tua
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            
+            if (code) {
+                const matchedStudent = students.find(s => s.uniqueCode === code);
+                if (matchedStudent) {
+                    selectedStudentId = matchedStudent.id;
+                    currentView = 'parent';
+                    showToast(`Akses Link Sukses: ${matchedStudent.name}`, "success");
+                }
+            }
+            updateLayout();
+        }
+
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+</body>
+</html>
